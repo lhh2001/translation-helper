@@ -1,0 +1,11 @@
+{
+    "isPause": true,
+    "showWindow": false,
+    "paddingLeft": 0,
+    "paddingTop": 0,
+    "width": 600,
+    "height": 160,
+    "closeAfterSecs": 600,
+    "showInterval": 3000,
+    "keys": [17, 67, 89]
+}
