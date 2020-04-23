@@ -1,2 +1,9 @@
 # vscode配置文件
 /.vscode/
+
+# 数据库文件
+ecdict.db
+
+# 查询产生的临时单词文件
+word.json
+root.json
