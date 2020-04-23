@@ -7,3 +7,6 @@ ecdict.db
 # 查询产生的临时单词文件
 word.json
 root.json
+
+# 头文件
+/include/

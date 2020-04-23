@@ -4,7 +4,7 @@
 
 ## 语言
 
-1. C++11 （编译时需要附加`-O2 -lgdi32`指令），使用[JSON for Modern C++](https://nlohmann.github.io/json/)解析JSON文件
+1. C++11 （编译时需要附加`-O2 -lgdi32`指令），使用[JSON for Modern C++](https://nlohmann.github.io/json/)的单文件库解析JSON文件
 2. Python 3.7
 
 ## 功能
