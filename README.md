@@ -40,7 +40,7 @@ secretKey = ''  # 填写你的密钥
 
 目前`set`功能还未添加，可以编辑`settings.json`文件进行相关设置。
 
-```json
+```
 //settings里各属性的说明
 {
     "isPause": true, //在弹窗之后，是否需要按任意键才可隐藏窗口
