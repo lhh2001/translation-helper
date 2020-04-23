@@ -1,10 +1,12 @@
 {
     "isPause": true,
     "showWindow": false,
+    "isUseDicv": true,
+    "isUseBaiduAPI": false,
     "paddingLeft": 0,
     "paddingTop": 0,
-    "width": 600,
-    "height": 160,
+    "width": 900,
+    "height": 200,
     "closeAfterSecs": 600,
     "showInterval": 3000,
     "keys": [17, 67, 89]

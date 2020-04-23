@@ -17,7 +17,10 @@ string getClipboardStr()
     char *pData;
     OpenClipboard(NULL);
     HANDLE hData = GetClipboardData(CF_TEXT);
-    assert(hData != NULL);
+    if (hData == NULL)
+    {
+        return "__ERROR__";
+    }
     pData = (char *)GlobalLock(hData);
     string url = pData;
     GlobalUnlock(hData);
@@ -51,6 +54,59 @@ private:
         return true;
     }
 
+    void printJsonWord(json j)
+    {
+        string s = j["word"];
+        printf(s.c_str());
+        cout << '\t' << "[";
+        s = j["phonetic"];
+        printf(s.c_str());
+        cout << "]" << endl;
+        s = j["definition"];
+        printf(s.c_str());
+        cout << endl;
+        s = j["translation"];
+        printf(s.c_str());
+        cout << endl;
+    }
+
+    void lookUpDic(const char* str, int n)
+    {
+        if (n > 50)
+        {
+            cout << "单词过长" << endl;
+            return;
+        }
+        string order = "getWord ";
+        order += str;
+        int re = system(order.c_str());
+        if (re == 3)
+        {
+            cout << "单词未在词典中找到" << endl;
+            return;
+        }
+        json word, root;
+        if ((re & 1) == 0) //找到了原词
+        {
+            ifstream i("word.json");
+            i >> word;
+            i.close();
+            cout << "原词: ";
+            printJsonWord(word);
+        }
+        if ((re & 2) == 0) //找到了词根
+        {
+            ifstream i("root.json");
+            i >> root;
+            i.close();
+            if (word != root)
+            {
+                cout << endl << "词根: ";
+                printJsonWord(root);
+            }
+        }
+    }
+
 public:
     TranslateHelper()
     {
@@ -76,7 +132,7 @@ public:
         i >> settings;
         i.close();
     }
-    
+
     void run()
     {
         while (true)
@@ -85,22 +141,34 @@ public:
             {
                 system("cls");
                 string order = getClipboardStr();
-                order = "python httpgets.py " + order;
+                if (order == "__ERROR__")
+                {
+                    Sleep(5);
+                    continue;
+                }
+                ShowWindow(hWnd, SW_RESTORE);
                 SetWindowPos(hWnd, HWND_TOPMOST,
                 settings["paddingLeft"],
                 settings["paddingTop"],
                 settings["width"],
                 settings["height"], SWP_SHOWWINDOW);
-                system(order.c_str());
+                if (settings["isUseDicv"] == true)
+                {
+                    lookUpDic(order.c_str(), order.size());
+                }
+                if (settings["isUseBaiduAPI"] == true)
+                {
+                    order = "python httpgets.py " + order;
+                    system(order.c_str());
+                }
                 if (settings["isPause"])
                 {
                     mouse_event(
                     MOUSEEVENTF_ABSOLUTE |  MOUSEEVENTF_MOVE,
                     ((int)settings["paddingLeft"] + (int)settings["width"] / 2) * 65535 / clientWidth,
-                    ((int)settings["paddingTop"] + (int)settings["height"] / 2) * 65535 / clientHeight,
+                    ((int)settings["paddingTop"] + 10) * 65535 / clientHeight,
                     0, 0);
                     mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-                    Sleep(10);
                     mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
                     system("pause");
                 }
@@ -111,13 +179,10 @@ public:
                 t = clock();
             }
             
+            ShowWindow(hWnd, SW_MINIMIZE);
             if (!settings["showWindow"])
             {
                 ShowWindow(hWnd, SW_HIDE);
-            }
-            else
-            {
-                ShowWindow(hWnd, SW_MINIMIZE);
             }
             
             if (getInterval() > settings["closeAfterSecs"])
