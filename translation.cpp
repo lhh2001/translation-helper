@@ -108,12 +108,22 @@ private:
         }
     }
 
+    void setFontFace()
+    {
+        HANDLE stdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_FONT_INFOEX cfie;
+        ZeroMemory(&cfie, sizeof(cfie));
+        cfie.cbSize = sizeof(cfie);
+        cfie.dwFontSize.Y = 18;
+        lstrcpyW(cfie.FaceName, L"Consolas");
+        SetCurrentConsoleFontEx(stdOut, false, &cfie);
+    }
+    
 public:
     TranslateHelper() : flag(false)
     {
         system("color f0"); //控制台颜色改变
         system("chcp 65001"); //UTF-8 编码
-
         t = clock();
         SetConsoleTitle("TranslateHelper");
         Sleep(100);
@@ -128,6 +138,8 @@ public:
         clientWidth = GetDeviceCaps(hdc, HORZRES);
         clientHeight = GetDeviceCaps(hdc, VERTRES);
         ReleaseDC(NULL, hdc);
+        
+        setFontFace();
         
         ifstream i("settings.json");
         i >> settings;
@@ -154,6 +166,7 @@ public:
                 settings["paddingTop"],
                 settings["width"],
                 settings["height"], SWP_SHOWWINDOW);
+                
                 if (settings["isUseDicv"] == true)
                 {
                     lookUpDic(order.c_str(), order.size());
