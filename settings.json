@@ -3,6 +3,8 @@
     "showWindow": false,
     "isUseDicv": true,
     "isUseBaiduAPI": false,
+    "appid": "",
+    "secretKey": "",
     "paddingLeft": 0,
     "paddingTop": 0,
     "width": 900,

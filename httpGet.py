@@ -8,8 +8,12 @@ import random
 import json
 import sys
 
-appid = ''  # 填写你的appid
-secretKey = ''  # 填写你的密钥
+f = open("settings.json", encoding='utf-8')
+settings = json.load(f)
+
+appid = settings["appid"]  # 填写你的appid
+secretKey = settings["secretKey"]  # 填写你的密钥
+f.close()
 
 httpClient = None
 myurl = '/api/trans/vip/translate'
