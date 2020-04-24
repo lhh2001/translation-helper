@@ -36,6 +36,7 @@ private:
     HWND hWnd;
     int clientWidth;
     int clientHeight;
+    bool flag;
     
     float getInterval()
     {
@@ -108,7 +109,7 @@ private:
     }
 
 public:
-    TranslateHelper()
+    TranslateHelper() : flag(false)
     {
         system("color f0"); //控制台颜色改变
         system("chcp 65001"); //UTF-8 编码
@@ -139,6 +140,7 @@ public:
         {
             if (check())
             {
+                flag = false;
                 system("cls");
                 string order = getClipboardStr();
                 if (order == "__ERROR__")
@@ -158,7 +160,8 @@ public:
                 }
                 if (settings["isUseBaiduAPI"] == true)
                 {
-                    order = "python httpgets.py " + order;
+                    cout << endl << "----------百度翻译----------" << endl;
+                    order = "httpGet " + order;
                     system(order.c_str());
                 }
                 if (settings["isPause"])
@@ -179,9 +182,13 @@ public:
                 t = clock();
             }
             
-            ShowWindow(hWnd, SW_MINIMIZE);
+            if (flag == false)
+            {
+                ShowWindow(hWnd, SW_MINIMIZE);
+            }
             if (!settings["showWindow"])
             {
+                flag = true;
                 ShowWindow(hWnd, SW_HIDE);
             }
             
@@ -199,8 +206,11 @@ public:
 
     void set()
     {
-        cout << "敬请期待" << endl;
+        system("start %windir%\\system32\\notepad.exe settings.json");
         system("pause");
+        ifstream i("settings.json");
+        i >> settings;
+        i.close();
     }
 };
 
