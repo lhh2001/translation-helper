@@ -10,3 +10,9 @@ root.json
 
 # 头文件
 /include/
+
+# 临时文件
+*.spec
+/__pycache__/
+/build/
+/dist/

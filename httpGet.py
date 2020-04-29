@@ -37,8 +37,9 @@ try:
     result_all = response.read().decode("utf-8")
     result = json.loads(result_all)
 
-    print("原文: ", result['trans_result'][0]['src'])
-    print("译文: ", result['trans_result'][0]['dst'])
+    with open("transResult.json", "w", encoding='utf-8') as f:
+        f.write(json.dumps(result, ensure_ascii=False))
+
 except Exception as e:
     print (e)
 finally:

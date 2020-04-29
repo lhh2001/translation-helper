@@ -4,7 +4,8 @@ import sys
 import stardict
 
 t = stardict.StarDict('ecdict.db')
-s = sys.argv[1]
+sys.argv.pop(0)
+s = " ".join(sys.argv)
 result = t.query(s)
 re = 0
 

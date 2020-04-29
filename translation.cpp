@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <future>
 #include <wingdi.h> //O2 -lgdi32
 #include "include/json.hpp"
 
@@ -36,7 +37,7 @@ private:
     HWND hWnd;
     int clientWidth;
     int clientHeight;
-    bool flag;
+    bool flag; //判断窗口是否已经最小化
     
     float getInterval()
     {
@@ -71,28 +72,37 @@ private:
         cout << endl;
     }
 
-    void lookUpDic(const char* str, int n)
+    int lookUpDic(const char* str, int n)
     {
         if (n > 50)
         {
-            cout << "单词过长" << endl;
-            return;
+            return -1;
         }
         string order = "getWord ";
         order += str;
-        int re = system(order.c_str());
+        return system(order.c_str());
+    }
+
+    void printWord(int re)
+    {
         if (re == 3)
         {
             cout << "单词未在词典中找到" << endl;
             return;
         }
+        if (re == -1)
+        {
+            cout << "单词过长!" << endl;
+            return;
+        }
+        
         json word, root;
         if ((re & 1) == 0) //找到了原词
         {
             ifstream i("word.json");
             i >> word;
             i.close();
-            cout << "原词: ";
+            cout << "------------原词------------" << endl;
             printJsonWord(word);
         }
         if ((re & 2) == 0) //找到了词根
@@ -102,10 +112,35 @@ private:
             i.close();
             if (word != root)
             {
-                cout << endl << "词根: ";
+                cout << endl;
+                cout << "------------词根------------" << endl;
                 printJsonWord(root);
             }
         }
+    }
+
+    void callBaiduAPI(string order)
+    {
+        system(order.c_str());
+    }
+
+    void printBaidu()
+    {
+        json transResult;
+        ifstream i("transResult.json");
+        i >> transResult;
+        i.close();
+
+        cout << endl << "----------百度翻译----------" << endl;
+        if (!transResult["error_code"].is_null())
+        {
+            cout << "错误代码: " << transResult["error_code"] << endl;
+            cout << "错误信息: " << transResult["error_msg"] << endl;
+            return;
+        }
+
+        cout << "原文: " << transResult["trans_result"][0]["src"] << endl;
+        cout << "译文: " << transResult["trans_result"][0]["dst"] << endl;
     }
 
     void setFontFace()
@@ -153,6 +188,11 @@ public:
             if (check())
             {
                 flag = false;
+                future<int> futWord;
+                future<void> futBaidu;
+                bool isUseFutWord = false;
+                bool isUseFutBaidu = false;
+
                 system("cls");
                 string order = getClipboardStr();
                 if (order == "__ERROR__")
@@ -169,14 +209,27 @@ public:
                 
                 if (settings["isUseDicv"] == true)
                 {
-                    lookUpDic(order.c_str(), order.size());
+                    isUseFutWord = true;
+                    futWord = async(lookUpDic, this, order.c_str(), order.size());
                 }
                 if (settings["isUseBaiduAPI"] == true)
                 {
-                    cout << endl << "----------百度翻译----------" << endl;
+                    isUseFutBaidu = true;
                     order = "httpGet " + order;
-                    system(order.c_str());
+                    futBaidu = async(callBaiduAPI, this, order);
                 }
+
+                if (isUseFutWord)
+                {
+                    printWord(futWord.get());
+                }
+                
+                if (isUseFutBaidu)
+                {
+                    futBaidu.get();
+                    printBaidu();
+                }
+
                 if (settings["isPause"])
                 {
                     mouse_event(
