@@ -9,7 +9,7 @@
 
 ## 功能
 
-1. 实时查询选中单词，离线查询，词典为`ecdict.db`，词典及词典接口为github用户[skywind3000](https://github.com/skywind3000/ECDICT)整理。
+1. 实时查询选中单词，离线查询，词典`ecdict.db`及词典接口`stardict.py`为github用户[skywind3000](https://github.com/skywind3000/ECDICT)整理。
 
 2. 实时对选中的内容进行翻译（英译汉），在线查询，需要联网并拥有百度翻译API账号（申请方式见下），同时设置修改`settings`里的`"isUseBaiduAPI"`属性为`true`。
 3. 本程序的特点是，按下快捷键即可唤出窗口显示查询、翻译的结果，之后按任意键即可隐藏窗口，或者经过设置的时间之后窗口自动消失（需要自行设置相关参数），无需手动最小化，无需打开网页复制粘贴。
