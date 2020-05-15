@@ -48,7 +48,7 @@
     "isUseDicv": true, //是否显示词典
     "isUseBaiduAPI": false, //是否显示百度翻译
     "appid" = "",  //填写你的appid
-	"secretKey" = "",  //填写你的密钥
+    "secretKey" = "",  //填写你的密钥
     "paddingLeft": 0, //窗口弹出时与左侧的距离
     "paddingTop": 0, //窗口弹出时与上方的距离
     "width": 900, //弹出窗口的宽度
