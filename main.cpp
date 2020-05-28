@@ -6,17 +6,17 @@ Created by Li Henghao on 21st, April, 2020.
 Last modified on 29th, April, 2020.
 
 *******************************************/
+#include "include/json.hpp"
 #include <Windows.h>
 #include <assert.h>
+#include <cstring>
+#include <fstream>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <thread>
 #include <time.h>
-#include <cstring>
-#include <iostream>
-#include <fstream>
-#include <future>
 #include <wingdi.h> //O2 -lgdi32
-#include "include/json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
@@ -46,7 +46,7 @@ private:
     int clientWidth;
     int clientHeight;
     bool flag; //判断窗口是否已经最小化
-    
+
     float getInterval()
     {
         return (float)(clock() - t) / CLOCKS_PER_SEC;
@@ -80,15 +80,16 @@ private:
         cout << endl;
     }
 
-    int lookUpDic(const char* str, int n)
+    void lookUpDic(const char *str, int n, int *lookUpDicRe)
     {
         if (n > 50)
         {
-            return -1;
+            *lookUpDicRe = -1;
+            return;
         }
         string order = "getWord ";
         order += str;
-        return system(order.c_str());
+        *lookUpDicRe = system(order.c_str());
     }
 
     void printWord(int re)
@@ -103,7 +104,7 @@ private:
             cout << "单词过长!" << endl;
             return;
         }
-        
+
         json word, root;
         if ((re & 1) == 0) //找到了原词
         {
@@ -139,7 +140,8 @@ private:
         i >> transResult;
         i.close();
 
-        cout << endl << "----------百度翻译----------" << endl;
+        cout << endl
+             << "----------百度翻译----------" << endl;
         if (!transResult["error_code"].is_null())
         {
             cout << "错误代码: " << transResult["error_code"] << endl;
@@ -161,11 +163,11 @@ private:
         lstrcpyW(cfie.FaceName, L"Consolas");
         SetCurrentConsoleFontEx(stdOut, false, &cfie);
     }
-    
+
 public:
     TranslateHelper() : flag(false)
     {
-        system("color f0"); //控制台颜色改变
+        system("color f0");   //控制台颜色改变
         system("chcp 65001"); //UTF-8 编码
         t = clock();
         SetConsoleTitle("TranslateHelper");
@@ -176,14 +178,14 @@ public:
             cout << "程序初始化失败!" << endl;
             exit(0);
         }
-        
+
         HDC hdc = GetDC(NULL);
         clientWidth = GetDeviceCaps(hdc, HORZRES);
         clientHeight = GetDeviceCaps(hdc, VERTRES);
         ReleaseDC(NULL, hdc);
-        
+
         setFontFace();
-        
+
         ifstream i("settings.json");
         i >> settings;
         i.close();
@@ -196,10 +198,12 @@ public:
             if (check())
             {
                 flag = false;
-                future<int> futWord;
-                future<void> futBaidu;
-                bool isUseFutWord = false;
-                bool isUseFutBaidu = false;
+                thread pWord;  //查询词典的线程
+                thread pBaidu; //调用百度API的线程
+                bool isUsePWord = false;
+                bool isUsePBaidu = false;
+
+                int lookUpDicRe;
 
                 system("cls");
                 string order = getClipboardStr();
@@ -210,41 +214,42 @@ public:
                 }
                 ShowWindow(hWnd, SW_RESTORE);
                 SetWindowPos(hWnd, HWND_TOPMOST,
-                settings["paddingLeft"],
-                settings["paddingTop"],
-                settings["width"],
-                settings["height"], SWP_SHOWWINDOW);
-                
+                             settings["paddingLeft"],
+                             settings["paddingTop"],
+                             settings["width"],
+                             settings["height"], SWP_SHOWWINDOW);
+
                 if (settings["isUseDicv"] == true)
                 {
-                    isUseFutWord = true;
-                    futWord = async(lookUpDic, this, order.c_str(), order.size());
+                    isUsePWord = true;
+                    pWord = thread(lookUpDic, this, order.c_str(), order.size(), &lookUpDicRe);
                 }
                 if (settings["isUseBaiduAPI"] == true)
                 {
-                    isUseFutBaidu = true;
+                    isUsePBaidu = true;
                     order = "httpGet " + order;
-                    futBaidu = async(callBaiduAPI, this, order);
+                    pBaidu = thread(callBaiduAPI, this, order);
                 }
 
-                if (isUseFutWord)
+                if (isUsePWord)
                 {
-                    printWord(futWord.get());
+                    pWord.join();
+                    printWord(lookUpDicRe);
                 }
-                
-                if (isUseFutBaidu)
+
+                if (isUsePBaidu)
                 {
-                    futBaidu.get();
+                    pBaidu.join();
                     printBaidu();
                 }
 
                 if (settings["isPause"])
                 {
                     mouse_event(
-                    MOUSEEVENTF_ABSOLUTE |  MOUSEEVENTF_MOVE,
-                    ((int)settings["paddingLeft"] + (int)settings["width"] / 2) * 65535 / clientWidth,
-                    ((int)settings["paddingTop"] + 10) * 65535 / clientHeight,
-                    0, 0);
+                        MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE,
+                        ((int)settings["paddingLeft"] + (int)settings["width"] / 2) * 65535 / clientWidth,
+                        ((int)settings["paddingTop"] + 10) * 65535 / clientHeight,
+                        0, 0);
                     mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
                     mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
                     system("pause");
@@ -255,7 +260,7 @@ public:
                 }
                 t = clock();
             }
-            
+
             if (flag == false)
             {
                 ShowWindow(hWnd, SW_MINIMIZE);
@@ -265,11 +270,11 @@ public:
                 flag = true;
                 ShowWindow(hWnd, SW_HIDE);
             }
-            
+
             if (getInterval() > settings["closeAfterSecs"])
             {
                 ShowWindow(hWnd, SW_SHOW);
-                SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
+                SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
                 cout << "长时间未操作, 程序自动结束!" << endl;
                 system("pause");
                 exit(0);

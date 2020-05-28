@@ -16,3 +16,8 @@ root.json
 /__pycache__/
 /build/
 /dist/
+
+# exe文件
+*.exe
+
+/release/
